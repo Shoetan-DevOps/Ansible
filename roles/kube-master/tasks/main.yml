@@ -1,2 +1,26 @@
 ---
 # tasks file for kube-master
+
+# Install container runtime in this case we will use conainerd
+- name: Install Containerd Runtime
+  become: true
+  ansible.builtin.package:
+    name: containerd
+
+# Add kubernetes repo to yum for RHEL / non debian
+- name: Add K8s to yum repo
+  become: yes
+  ansible.builtin.copy:
+    src: kubernetes.repo
+    dest: sudo tee /etc/yum.repos.d/kubernetes.repo
+  when: ansible_facts['os_family'] != "Debian"
+
+
+# Add kubernetes repo to yum for RHEL / non debian
+#- name: set SELinus to permissive mode
+#  become: yes
+#  ansible.builtin.copy:
+#    src: kubernetes.repo
+#    dest: sudo tee /etc/yum.repos.d/kubernetes.repo
+#  when: ansible_facts['os_family'] != "Debian"
+
