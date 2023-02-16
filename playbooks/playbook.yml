@@ -1,0 +1,9 @@
+- hosts: localhost 
+  gather_facts: no
+  roles:
+    - ansible-aliases
+
+- hosts: k8smaster
+  remote_user: ansible
+  roles: 
+      - kube-master
