@@ -5,7 +5,6 @@ echo "Create ansible aliases for commonly used commands"
 cat << 'EOF' > /home/ansible/.bash_aliases
 alias gits="git status"
 alias gita="git add ."
-alias gitpm="git push origin main"
 alias las="cat /home/ansible/.bash_aliases"
 alias lkm="ls /etc/ansible/roles/kube-master/"
 alias lkw="ls /etc/ansible/roles/kube-worker/"
