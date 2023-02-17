@@ -1,15 +1,28 @@
----
 # tasks file for kube-master
 
-# Install container runtime in this case we will use conainerd
-- name: Install Containerd Runtime
-  become: true
+
+# <---------------- Install Container D --------------------------->
+# Install yum utils for managing yum repo
+- name: Install yum-utils  
+  ansible.builtin.package:
+    name: yum-utils
+
+# add docker repo to  our local yum repo
+- name: Add docker reoi
+  ansible.builtin.yum_repository:
+    name: docker
+    description: Add docker repo
+    baseurl: https://download.docker.com/rhel/docker-ce.repo
+
+
+# Install container d
+- name: Install containerd
   ansible.builtin.package:
     name: containerd.io
 
+
 # Add kubernetes repo to yum for RHEL / non debian
 - name: Add K8s to yum repo
-  become: yes
   ansible.builtin.copy:
     src: kubernetes.repo
     dest: sudo tee /etc/yum.repos.d/kubernetes.repo
