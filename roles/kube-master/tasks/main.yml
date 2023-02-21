@@ -1,39 +1,52 @@
 # tasks file for kube-master
 
+#<---------------- Add K8s Repo   ----------------------------->
+# Add kubernetes repo 
+- name: Add k8s repo
+  ansible.builtin.copy:
+    src: /etc/ansible/roles/kube-master/files/kubernetes.repo
+    dest: /etc/yum.repos.d/kubernetes.repo
+
+#<----------------   set SELinus to permissive  mode  -------->
+- name: Set SE linus to permissive 
+  ansible.builtin.shell: |
+    sudo setenforce 0
+    sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
 # <---------------- Install Container D --------------------------->
 # Install yum utils for managing yum repo
 - name: Install yum-utils  
   ansible.builtin.package:
     name: yum-utils
+    state: latest
 
-# add docker repo to  our local yum repo
-- name: Add docker reoi
-  ansible.builtin.yum_repository:
-    name: docker
-    description: Add docker repo
-    baseurl: https://download.docker.com/rhel/docker-ce.repo
-
+# add docker repo to  our local yum repo list w/ yum config manager
+- name: Add docker repo
+  ansible.builtin.command: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo" 
 
 # Install container d
 - name: Install containerd
   ansible.builtin.package:
     name: containerd.io
 
+# add k8s repo to  our local yum repo list w/ yum config manager
+#- name: Add k8s repo
+#  ansible.builtin.command: "yum-config-manager --add-repo https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64" 
 
 # Add kubernetes repo to yum for RHEL / non debian
 - name: Add K8s to yum repo
   ansible.builtin.copy:
     src: kubernetes.repo
-    dest: sudo tee /etc/yum.repos.d/kubernetes.repo
+    dest: /etc/yum.repos.d/kubernetes.repo
   when: ansible_facts['os_family'] != "Debian"
 
+# <---------------- Install kubeadm, kubelet & kubeadm --------------------------->
+# Install kubeadm kubelet and kubectl
+- name: Install kubeadm, kubelet and kubectl
+  ansible.builtin.command: "yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes"
 
-# Add kubernetes repo to yum for RHEL / non debian
-#- name: set SELinus to permissive mode
-#  become: yes
-#  ansible.builtin.copy:
-#    src: kubernetes.repo
-#    dest: sudo tee /etc/yum.repos.d/kubernetes.repo
-#  when: ansible_facts['os_family'] != "Debian"
-
+# <------------------ enable kubelet service --------------------------------->
+- name: Enable kubelet service
+  ansible.builtin.service:
+    name: kubelet
+    enabled: yes  
