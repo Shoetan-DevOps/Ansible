@@ -14,6 +14,29 @@
     sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
 # <---------------- Install Container D --------------------------->
+# containerD pre-req for netfilter & overlay
+- name: (containerD pre-req) configure overlay & br_netfiler
+  ansible.builtin.copy:
+    src: /etc/ansible/roles/kube-master/files/k8s.conf
+    dest: /etc/modules-load.d/k8s.conf
+    
+# Container runtime requiremenrs
+- name: (containerD re-req) Implement net filgter & overlay
+  ansible.builtin.shell: |
+    sudo modprobe overlay
+    sudo modprobe br_netfilter 
+
+
+# containerD pre-req - allow iptables to see bridged traffic
+- name: (containerD pre-req) allow bridged traffic
+  ansible.builtin.copy:
+    src: /etc/ansible/roles/kube-master/files/k8s-ip.conf
+    dest: /etc/sysctl.d/k8s.conf
+
+# Apply w/out reboot
+- name: (containerD re-req) Apply bridge withpout reboot
+  ansible.builtin.shell: sudo sysctl --system
+
 # Install yum utils for managing yum repo
 - name: Install yum-utils  
   ansible.builtin.package:
