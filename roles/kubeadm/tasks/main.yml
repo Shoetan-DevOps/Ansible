@@ -56,6 +56,19 @@
 #- name: Add k8s repo
 #  ansible.builtin.command: "yum-config-manager --add-repo https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64" 
 
+#  remove config.toml we dont want cri disable 
+- name:  Delete config.toml & enable CRI
+  ansible.builtin.file:
+    path: /etc/containerd/config.toml
+    state: absent 
+
+# Restart containerd service 
+- name: Restart containerd service
+  ansible.builtin.service:
+    name: containerd
+    state: restarted
+
+
 # Add kubernetes repo to yum for RHEL / non debian
 - name: Add K8s to yum repo
   ansible.builtin.copy:
@@ -73,3 +86,10 @@
   ansible.builtin.service:
     name: kubelet
     enabled: yes  
+
+# <------------------ Start kubelet service --------------------------------->
+- name: Start kubelet service
+  ansible.builtin.service:
+    name: kubelet
+    state: started
+
