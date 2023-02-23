@@ -1,10 +1,10 @@
-# tasks file for kube-master
+# tasks file for kubeadm
 
 #<---------------- Add K8s Repo   ----------------------------->
 # Add kubernetes repo 
 - name: Add k8s repo
   ansible.builtin.copy:
-    src: /etc/ansible/roles/kube-master/files/kubernetes.repo
+    src: /etc/ansible/roles/kubeadm/files/kubernetes.repo
     dest: /etc/yum.repos.d/kubernetes.repo
 
 #<----------------   set SELinus to permissive  mode  -------->
@@ -17,7 +17,7 @@
 # containerD pre-req for netfilter & overlay
 - name: (containerD pre-req) configure overlay & br_netfiler
   ansible.builtin.copy:
-    src: /etc/ansible/roles/kube-master/files/k8s.conf
+    src: /etc/ansible/roles/kubeadm/files/k8s.conf
     dest: /etc/modules-load.d/k8s.conf
     
 # Container runtime requiremenrs
@@ -30,7 +30,7 @@
 # containerD pre-req - allow iptables to see bridged traffic
 - name: (containerD pre-req) allow bridged traffic
   ansible.builtin.copy:
-    src: /etc/ansible/roles/kube-master/files/k8s-ip.conf
+    src: /etc/ansible/roles/kubeadm/files/k8s-ip.conf
     dest: /etc/sysctl.d/k8s.conf
 
 # Apply w/out reboot

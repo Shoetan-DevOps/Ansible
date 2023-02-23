@@ -1,6 +1,11 @@
 
-- hosts: k8smaster
+- hosts: k8s
   become: true
   remote_user: ansible
   roles: 
-      - kube-master
+      - kubeadm
+
+#- hosts: k8smaster
+
+#-  hosts: k8sworker
+#
