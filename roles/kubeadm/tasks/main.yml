@@ -8,10 +8,11 @@
     dest: /etc/yum.repos.d/kubernetes.repo
 
 #<----------------   set SELinus to permissive  mode  -------->
-- name: Set SE linus to permissive 
+- name: Set SE linux to permissive & disable swap 
   ansible.builtin.shell: |
-    sudo setenforce 0
-    sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+    setenforce 0
+    sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+    sudo swapoff -a
 
 # <---------------- Install Container D --------------------------->
 # containerD pre-req for netfilter & overlay
@@ -52,15 +53,17 @@
   ansible.builtin.package:
     name: containerd.io
 
-# add k8s repo to  our local yum repo list w/ yum config manager
-#- name: Add k8s repo
-#  ansible.builtin.command: "yum-config-manager --add-repo https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64" 
-
 #  remove config.toml we dont want cri disable 
 - name:  Delete config.toml & enable CRI
   ansible.builtin.file:
     path: /etc/containerd/config.toml
     state: absent 
+
+# replace 
+- name: replace containerd config.toml
+  ansible.builtin.copy:
+    src: /etc/ansible/roles/kubeadm/files/config.toml
+    dest: /etc/containerd/config.toml
 
 # Restart containerd service 
 - name: Restart containerd service
