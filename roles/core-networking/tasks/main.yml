@@ -2,7 +2,7 @@
 # tasks file for core-networking
 #
 # <--- Install Docker & Docker compose
-- name: Install docker compose
+- name: Install docker 
   ansible.builtin.apt:
     name: docker.io
     state: latest
@@ -15,4 +15,4 @@
   ansible.builtin.apt:
     name: docker-compose
     state: latest
-
+  notify: completed_install 

@@ -1,0 +1,15 @@
+#version:
+services:
+  loadbalancer:
+    image: haproxy:alpine
+    ports:
+      - "80:80"
+    depends_on:
+      - dns
+    restart: always
+    configs:
+      - 
+  dns:
+    image: adguard/adguardhome
+    ports:
+    restart: always 
