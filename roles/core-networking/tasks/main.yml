@@ -27,8 +27,8 @@
 
 - name: Copy docker compose files into core-networking directory
   ansible.builtin.copy:
-    src: /* 
-    dest: ~/
+    src: . 
+    dest: /home/ansible/core-networking/
     owner: ansible
     group: ansible
     mode: '755'
