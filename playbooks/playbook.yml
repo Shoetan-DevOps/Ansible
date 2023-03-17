@@ -7,7 +7,7 @@
     - kubeadm
 
 # --- Worker Node ----
-- hosts: k8sworker
+- hosts:  k8sworker
   become: true
   roles:
     - kube-worker
