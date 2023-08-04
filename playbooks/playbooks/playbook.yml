@@ -1,0 +1,14 @@
+
+# --- Master Node ---
+- hosts: k8smaster
+  become: true
+  roles:
+    - kube-master
+    - kubeadm
+
+# --- Worker Node ----
+- hosts:  k8sworker
+  become: true
+  roles:
+    - kube-worker
+    - kubeadm

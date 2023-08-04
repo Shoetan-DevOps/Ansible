@@ -1,0 +1,16 @@
+# < ------ Add  ansible Worker ------->
+- hosts:  controlMe
+  become: true
+  tasks:
+    - name: Create Anisble user
+      ansible.builtin.user:
+        name: ansible
+        shell: /bin/bash
+        state: present
+        groups: sudo
+
+    - name: Copy SSH public key
+      authorized_key:
+        user: ansible
+        key: "{{ lookup('file', '/home/ansible/.ssh/id_rsa.pub') }}"
+

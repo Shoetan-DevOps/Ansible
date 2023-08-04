@@ -1,0 +1,29 @@
+#version: 3
+
+services:
+  loadbalancer:
+    image: haproxy:alpine
+    ports:
+      - "80:80"
+    depends_on:
+      - dns
+    restart: always
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+  dns:
+    image: adguard/adguardhome
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp" 
+      - '80:80/tcp'
+      - '443:443/tcp'
+      - '443:443/udp'
+      - '3000:3000/tcp'  #dashboard
+    restart: always
+    volumes:
+      - ./AdguardHome:/opt/adguardhome/work 
+    environment:
+      TZ: "America/New_York"
+      AGH_DNS: "listen, 0.0.0.0:53"  #listen to all devices dns request on port 53
+        # AGH_USER_UID:
+        # AGH_USER_GID:

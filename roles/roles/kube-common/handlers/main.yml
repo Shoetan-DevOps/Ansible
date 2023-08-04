@@ -1,0 +1,88 @@
+---
+# handlers file for kube-common
+
+- name: add kernel modules- overlay and br_netfilter
+  become: yes
+  ansible.builtin.command: |
+    modprobe overlay
+    modprobe br_netfilter
+
+- name: Reload system kernel params
+  become: true
+  ansible.builtin.command: sysctl --system
+
+#- name: repo GPG key
+#  become: yes
+#  ansible.builtin.command: curl -sSL https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ k8v }}/{{ os }}/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
+
+- name: download repo GPG key
+  become: yes
+  ansible.builtin.get_url:
+    url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ k8v }}/{{ os }}/Release.key"
+    dest: "/tmp/repo-Release.key"
+
+- name: Fetch the file from the target host
+  ansible.builtin.synchronize:
+    src: /tmp/repo-Release.key
+    dest: ~/repo-Release.key
+    mode: pull	 
+
+- name: add repo GPG key to trusted.gpg 
+  become: yes
+  ansible.builtin.copy:
+    src: ~/repo-Release.key
+    dest: /etc/apt/trusted.gpg.d/libcontainers.gpg
+
+#- name: config GPG key
+#  become: yes
+#  ansible.builtin.command: curl -sSL https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ os }}/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
+
+- name: download config GPG key
+  become: yes
+  ansible.builtin.get_url:
+    url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ os }}/Release.key"
+    dest: "/tmp/config-Release.key"
+
+- name: Fetch config file from the target host
+  ansible.builtin.synchronize:
+    src: /tmp/config-Release.key
+    dest: ~/config-Release.key
+    mode: pull
+
+- name: add config GPG key to trusted.gpg
+  become: yes
+  ansible.builtin.copy:
+    src: ~/config-Release.key
+    dest: /etc/apt/trusted.gpg.d/libcontainersc.gpg
+
+- name: create crio default file
+  become: yes
+  ansible.builtin.file:
+    path: /etc/default/crio
+    state: touch
+  ignore_errors: yes
+
+- name: enable crio
+  become: yes
+  ansible.builtin.command: |
+    sudo systemctl daemon-reload
+    sudo systemctl enable crio --now
+    sudo apt-get update
+
+- name: k8s GPG key and update repo
+  become: yes
+  ansible.builtin.command: | 
+    curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+    sudo apt-get update -y
+
+- name: update apt
+  become: yes
+  ansible.builtin.command: sudo apt-get update -y
+     
+
+
+
+
+
+
+

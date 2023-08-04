@@ -1,0 +1,4 @@
+# Master Nodes
+- hosts: k8smaster
+  roles:
+    - kube-common
