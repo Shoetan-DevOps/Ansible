@@ -1,0 +1,62 @@
+---
+# handlers file for kube-master
+#
+
+#<----------------   set SELinus to permissive  mode  -------->
+- name: Set SE linux to permissive & disable swap
+  ansible.builtin.shell: |
+    setenforce 0
+    sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+    sudo swapoff -a
+
+# Container runtime requiremenrs
+- name: (containerD re-req) Implement net filgter & overlay
+  ansible.builtin.shell: |
+    sudo modprobe overlay
+    sudo modprobe br_netfilter
+
+# Apply w/out reboot
+- name: (containerD re-req) Apply bridge without reboot
+  ansible.builtin.shell: sudo sysctl --system
+
+
+# add docker repo to  our local yum repo list w/ yum config manager
+- name: Add docker repo
+  ansible.builtin.command: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+
+
+#  remove config.toml we dont want cri disable
+- name:  Delete config.toml & enable CRI
+  ansible.builtin.file:
+    path: /etc/containerd/config.toml
+    state: absent
+
+# replace
+- name: replace containerd config.toml
+  ansible.builtin.copy:
+    src: /etc/ansible/roles/kubeadm/files/config.toml
+    dest: /etc/containerd/config.toml
+
+# Restart containerd service
+- name: Restart containerd service
+  ansible.builtin.service:
+    name: containerd
+    state: restarted
+
+
+# <---------------- Install kubeadm, kubelet & kubeadm --------------------------->
+# Install kubeadm kubelet and kubectl
+- name: Install kubeadm, kubelet and kubectl
+  ansible.builtin.command: "yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes"
+
+# <------------------ enable kubelet service --------------------------------->
+- name: Enable kubelet service
+  ansible.builtin.service:
+    name: kubelet
+    enabled: yes
+
+# <------------------ Start kubelet service --------------------------------->
+- name: Start kubelet service
+  ansible.builtin.service:
+    name: kubelet
+    state: started

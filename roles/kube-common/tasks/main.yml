@@ -1,0 +1,174 @@
+---
+# tasks file for kube-common
+
+#<------- DNS Settings --------->
+- name: create resolved.conf if not exists
+  become: yes
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d
+    state: directory
+
+- name: Set DNS Settings resolved.conf
+  become: yes
+  ansible.builtin.template: 
+    src: templates/dns_servers.j2
+    dest: /etc/systemd/resolved.conf.d/dns_servers.conf
+  notify: Restart systemd-resolved service
+
+# - name: Restart systemd-resolved service
+#   become: yes
+#   ansible.builtin.systemd:
+#     name: systemd-resolved
+#     state: restarted
+#<-----   END DNS ------>
+
+
+#<--------- DISABLE SWAP PERMANENT ------>
+- name: Disable SWAP
+  become: yes
+  ansible.builtin.command: swapoff -a
+
+- name: Cron Job to Persist SWAP Off
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /var/spool/cron/crontabs/root
+    line: "@reboot /sbin/swapoff -a"
+    create: yes
+#<----  END SWAP OFF --->
+
+
+#<------- Upate apt packages --->
+- name: Update APT Repos
+  become: yes
+  ansible.builtin.apt:
+    update_cache: yes
+#<---- END UPDATE --->
+
+
+#<----- INSTALL CRIO RUNTIME ----->
+- name: Create & add lines to crio.conf if applicable
+  become: yes
+  ansible.builtin.lineinfile: 
+    path: /etc/modules-load.d/crio.conf
+    line: "{{ item }}"
+    create: yes
+  loop: ["overlay", "br_netfilter"]
+  notify:
+    - add kernel modules- overlay and br_netfilter
+
+- name: add kernel modules- overlay and br_netfilter 
+  meta: flush_handlers
+
+- name: Allow ip forwarding and persist
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.d/99-kubernetes-cri.conf
+    line: "{{ item }}"
+    create: yes
+  loop: 
+    - net.bridge.bridge-nf-call-iptables  = 1
+    - net.ipv4.ip_forward                 = 1
+    - net.bridge.bridge-nf-call-ip6tables = 1
+  notify: 
+    - Reload system kernel params
+
+- name: Reload system kernel params
+  meta: flush_handlers
+
+- name: Add libcontainers and kubic deb repos
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+    line: deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ os }}/ /
+    create: yes
+  notify: 
+    - repo GPG key
+
+- name: download GPG key and add to apt-key
+  meta: flush_handlers
+
+- name: Add deb config lib config
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ k8v }}.list
+    line: deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ k8v }}/{{ os }}/ /
+    create: yes 
+  notify:
+    - config GPG key
+
+- name: config GPG key 
+  meta: flush_handlers
+
+- name: update apt packages
+  become: yes
+  ansible.builtin.command: apt-get update -y
+
+- name: Install cri-o and cri-o-runc
+  become: yes
+  ansible.builtin.apt:
+    name: 
+      - cri-o
+      - cri-o-runc
+    state: present
+  notify:
+    - daemon reload
+
+- name: create crio default
+  meta: flush_handlers
+
+- name: create crio default file
+  become: yes
+  ansible.builtin.file:
+    path: /etc/default/crio
+    state: file
+
+-  name: enable crio
+   become: yes
+   ansible.builtin.systemd:
+     name: crio
+     enabled: yes
+     state: started
+
+
+#<------  END CRIO INSTALLATION ------->
+
+
+#<------ BEGIN K8S INSTALLATION ------->
+- name: install http & cert package
+  become: yes
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+    state: present
+
+- name: add k8s repo to apt
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list.d/kubernetes.list
+    line: deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
+    create: yes
+  notify: 
+    - k8s GPG key and update repo
+    - update apt
+    
+- name: k8s GPG key and update repo
+  meta: flush_handlers
+
+- name: install k8s components
+  become: yes
+  ansible.builtin.apt:
+    name: 
+      - kubelet={{ kubernetes_version }}
+      - kubectl={{ kubernetes_version }}
+      - kubeadm={{ kubernetes_version }}
+    state: present
+  notify: update apt  
+
+- name: update apt
+  meta: flush_handlers
+
+- name: Get Local IP Address
+  ansible.builtin.debug:
+    var: ansible_default_ipv4.address
