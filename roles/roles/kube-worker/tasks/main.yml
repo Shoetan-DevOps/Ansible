@@ -1,7 +1,0 @@
----
-# tasks file for kube-worker
-
-# <----------- Open worker node ports ------->
-- name: Open k8s ports for Master Node (3000-32767 NodePort)
-  ansible.builtin.command: firewall-cmd --permanent --add-port=30000-32767/tcp
-
