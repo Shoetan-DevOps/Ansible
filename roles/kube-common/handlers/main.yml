@@ -29,13 +29,6 @@
     curl -sSL https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ os }}/Release.key | 
     sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
 
-# - name: create crio default file
-#   become: yes
-#   ansible.builtin.file:
-#     path: /etc/default/crio
-#     state: touch
-#   ignore_errors: yes
-
 - name: daemon reload
   become: yes
   ansible.builtin.command: |
@@ -50,8 +43,6 @@
 - name: update apt
   become: yes
   ansible.builtin.command: apt-get update -y
-     
-
 
 
 

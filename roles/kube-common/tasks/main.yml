@@ -15,12 +15,8 @@
     dest: /etc/systemd/resolved.conf.d/dns_servers.conf
   notify: Restart systemd-resolved service
 
-# - name: Restart systemd-resolved service
-#   become: yes
-#   ansible.builtin.systemd:
-#     name: systemd-resolved
-#     state: restarted
-#<-----   END DNS ------>
+- name: Restart systemd-resolved service 
+  meta: flush_handlers
 
 
 #<--------- DISABLE SWAP PERMANENT ------>
@@ -120,7 +116,7 @@
   become: yes
   ansible.builtin.file:
     path: /etc/default/crio
-    state: file
+    state: touch
 
 -  name: enable crio
    become: yes
@@ -128,8 +124,6 @@
      name: crio
      enabled: yes
      state: started
-
-
 #<------  END CRIO INSTALLATION ------->
 
 
@@ -168,7 +162,28 @@
 
 - name: update apt
   meta: flush_handlers
+#<------  END K8s COMPONENT INSTALLATION ------->
 
+
+#<------  Kubelet Settings ------->
 - name: Get Local IP Address
   ansible.builtin.debug:
     var: ansible_default_ipv4.address
+
+- name: kubelet extra args
+  become: yes
+  ansible.builtin.file:
+    path: /etc/default/kubelet
+    state: touch
+
+- name: set kubelet args  
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/default/kubelet
+    line: "KUBELET_EXTRA_ARGS=--node-ip={{ ansible_default_ipv4.address }}"
+    create: yes    
+
+#<------  End Kubelet Settings ------->
+
+
+
