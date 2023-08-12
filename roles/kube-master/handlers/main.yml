@@ -1,2 +1,32 @@
 ---
 # handlers file for kube-master
+
+  
+# - name: Download Calico pod network
+#   become: yes
+#   ansible.builtin.shell: | 
+#     curl https://raw.githubusercontent.com/projectcalico/calico/v{{ calico }}/manifests/calico.yaml -O
+
+- name: Copy kube config for kube-user
+  become:  yes
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/kube-user/.kube/config
+    remote_src: yes
+    force: yes
+
+- name: Copy kube config for ansible
+  become:  yes
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/ansible/.kube/config
+    remote_src: yes
+    force: yes
+
+- name: Download Calico pod network
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/projectcalico/calico/v{{ calico }}/manifests/calico.yaml
+    dest: /home/ansible/calico.yaml
+
+- name: Apply Calico pod network
+  ansible.builtin.command: kubectl apply -f /home/ansible/calico.yaml

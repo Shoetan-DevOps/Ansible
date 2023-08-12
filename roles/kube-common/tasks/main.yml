@@ -185,5 +185,31 @@
 
 #<------  End Kubelet Settings ------->
 
+# #<------- create kube-user --------->
+- name: create kube-user
+  become: yes
+  ansible.builtin.user: 
+    name: kube-user
+    state: present
+    shell: /bin/bash
+# #<------- END create kube-user --------->
 
 
+#<------  Give users cluster admin ------->
+- name: Create .kube directory for kube-user
+  become: yes
+  ansible.builtin.file:
+    path: /home/kube-user/.kube
+    state: directory
+    owner: kube-user
+    group: kube-user
+
+- name: Create .kube directory for ansible
+  become: yes
+  ansible.builtin.file:
+    path: /home/ansible/.kube
+    state: directory
+    owner: ansible
+    group: ansible
+
+#<------  END Give users cluster admin ------->

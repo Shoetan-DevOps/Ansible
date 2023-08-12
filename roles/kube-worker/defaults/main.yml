@@ -1,2 +1,6 @@
 ---
 # defaults file for kube-worker
+
+k8smaster_open_ports: 
+  - 10250 #kubelet
+  - 30000-32767	#NodePort Services

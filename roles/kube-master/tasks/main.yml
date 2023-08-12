@@ -1,11 +1,62 @@
 ---
 # tasks file for kube-master
 
-#<------- open ports --------->
-- name: Open k8s ports for Master Node (6443 api-server)
-  ansible.builtin.command: firewall-cmd --permanent --add-port=6443/tcp
+# #<------- open ports --------->
+# - name: Open k8s ports for Master Node (6443 api-server)
+#   ansible.builtin.command: firewall-cmd --permanent --add-port=6443/tcp
 
-#<------- open ports --------->
-- name: Open k8s ports for Master Node (2378-2380 etcd)
-  ansible.builtin.command: firewall-cmd --permanent --add-port=2379-2380/tcp
+# #<------- open ports --------->
+# - name: Open k8s ports for Master Node (2378-2380 etcd)
+#   ansible.builtin.command: firewall-cmd --permanent --add-port=2379-2380/tcp
 
+# #<------- Pull k8s masternode images --------->
+# - name: check if images pulled
+#   become: yes
+#   ansible.builtin.stat:
+#     path: /etc/kubernetes/images_pulled
+#   register: images_pulled
+
+- name: Pull k8smaster images
+  become: yes
+  ansible.builtin.command: kubeadm config images pull
+# #<------- END Pull k8s masternode images --------->
+
+
+# #<------- Kubeadm Initialize Cluser --------->
+- name: Check for old cluster
+  become: yes
+  ansible.builtin.stat:
+    path: /home/kube-user/.kube
+  register: cluster_exists
+
+- name: Reset if cluster exists
+  become: yes
+  ansible.builtin.shell: |
+    yes | kubeadm reset
+    rm -rf ~/.kube
+    rm -rf /etc/kubernetes/pki
+    rm -rf /etc/kubernetes/ssl
+    rm -rf /etc/kubernetes/*
+    rm -rf /etc/cni /opt/cni /var/lib/cni /var/run/cni
+  when: cluster_exists.stat.exists == true
+
+- name: Iniialize cluster
+  become: yes
+  ansible.builtin.command: |
+    kubeadm init 
+    --apiserver-advertise-address={{ ansible_default_ipv4.address }} 
+    --apiserver-cert-extra-sans={{ ansible_default_ipv4.address }} 
+    --pod-network-cidr={{ pod_cidr }} 
+    --service-cidr={{ service_cidr }} 
+    --node-name {{ ansible_hostname }} 
+    --ignore-preflight-errors Swap
+  notify:
+  - Copy kube config for kube-user
+  - Copy kube config for ansible
+  - Download Calico pod network
+  - Apply Calico pod network
+
+- name: kube config & pod network
+  meta: flush_handlers
+
+# #<------- END  Kubeadm Initialize Cluser --------->

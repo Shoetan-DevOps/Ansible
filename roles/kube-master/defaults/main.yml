@@ -1,2 +1,14 @@
 ---
 # defaults file for kube-master
+
+k8smaster_open_ports: 
+  - 6443  #api-server
+  - 2379  #etcd
+  - 2380  #etcd
+  - 10250 #kubelet
+  - 10257 #kube-controller-manager
+  - 10259 #kube-scheduler
+
+pod_cidr: 172.16.1.0/16
+service_cidr: 172.17.1.0/16
+calico: 3.26.0
