@@ -1,12 +1,6 @@
 ---
 # handlers file for kube-master
 
-  
-# - name: Download Calico pod network
-#   become: yes
-#   ansible.builtin.shell: | 
-#     curl https://raw.githubusercontent.com/projectcalico/calico/v{{ calico }}/manifests/calico.yaml -O
-
 - name: Copy kube config for kube-user
   become:  yes
   ansible.builtin.copy:
@@ -27,6 +21,10 @@
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/projectcalico/calico/v{{ calico }}/manifests/calico.yaml
     dest: /home/ansible/calico.yaml
+
+- name: Run a command with a timeout
+  ansible.builtin.shell: /path/to/some_command.sh
+  timeout: 100  # Timeout value in seconds
 
 - name: Apply Calico pod network
   ansible.builtin.command: kubectl apply -f /home/ansible/calico.yaml
