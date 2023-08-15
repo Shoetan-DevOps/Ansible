@@ -2,6 +2,44 @@
 # tasks file for kube-worker
 
 # <----------- Open worker node ports ------->
-- name: Open k8s ports for Master Node (3000-32767 NodePort)
-  ansible.builtin.command: firewall-cmd --permanent --add-port=30000-32767/tcp
+# - name: Open k8s ports for Master Node (3000-32767 NodePort)
+#   ansible.builtin.command: firewall-cmd --permanent --add-port=30000-32767/tcp
 
+# - name: Get current Master cluster hash
+#   become: yes
+#   ansible.builtin.command: grep -o 'sha256:[a-f0-9]\{64\}' /home/ansible/join_{{ ansible_hostname }}.sh
+#   delegate_to: "{{ master_ip }}"
+#   register: master_hash
+
+# - name: Get current Worker cluster hash
+#   become: yes
+#   ansible.builtin.command: grep -o 'sha256:[a-f0-9]\{64\}' /home/ansible/join_{{ ansible_hostname }}.sh
+#   register: worker_hash
+
+- name: Drain Node & Reset worker
+  become: yes
+  ansible.builtin.shell: |
+      yes | kubeadm reset
+      rm -rf /etc/kubernetes/pki
+      rm -rf /etc/kubernetes/ssl
+
+- name: Generate Join Script
+  ansible.builtin.shell: kubeadm token create --print-join-command > /home/ansible/join_{{ ansible_hostname }}.sh
+  delegate_to: "{{ master_ip }}"
+  notify:
+    - Transfer join token to ansible
+    - Copy join token to worker
+    - Join worker to cluster
+
+- name: Pause for 25 seconds
+  ansible.builtin.pause:
+      seconds: 25
+
+- name: View nodes in cluster
+  ansible.builtin.command: kubectl get no
+  register: node_list
+  delegate_to: "{{ master_ip }}"
+
+- name: Print node list
+  ansible.builtin.debug: 
+    var: node_list.stdout

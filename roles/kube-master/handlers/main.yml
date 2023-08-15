@@ -21,10 +21,10 @@
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/projectcalico/calico/v{{ calico }}/manifests/calico.yaml
     dest: /home/ansible/calico.yaml
-
+    
 - name: Run a command with a timeout
-  ansible.builtin.shell: /path/to/some_command.sh
-  timeout: 100  # Timeout value in seconds
+  ansible.builtin.shell: echo 'Waiting to apply Calico CNI'
+  timeout: 100  
 
 - name: Apply Calico pod network
   ansible.builtin.command: kubectl apply -f /home/ansible/calico.yaml

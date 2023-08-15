@@ -1,2 +1,29 @@
 ---
 # handlers file for kube-worker
+
+# - name: Transfer join token to worker
+#   ansible.builtin.copy:
+#     src: /home/ansible/join_{{ ansible_hostname }}.sh
+#     dest: /home/ansible/join.sh
+#     remote_src: yes
+#   delegate_to: "{{ master_ip }}"
+
+- name: Transfer join token to ansible
+  ansible.builtin.fetch:
+    src: /home/ansible/join_{{ ansible_hostname }}.sh
+    dest: /tmp/
+    flat: yes
+  delegate_to: "{{ master_ip }}"
+
+- name: Copy join token to worker
+  ansible.builtin.copy:
+    src: /tmp/join_{{ ansible_hostname }}.sh
+    dest: /home/ansible/join_{{ ansible_hostname }}.sh
+    owner: ansible
+    group: ansible
+    mode: "755"
+
+- name: Join worker to cluster
+  become: yes
+  ansible.builtin.shell: sh join_{{ ansible_hostname }}.sh
+
