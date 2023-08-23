@@ -195,7 +195,7 @@
 # #<------- END create kube-user --------->
 
 
-#<------  Give users cluster admin ------->
+#<------  Create cluster admin ------->
 - name: Create .kube directory for kube-user
   become: yes
   ansible.builtin.file:

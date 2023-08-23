@@ -1,0 +1,36 @@
+---
+# handlers file for wireguard-server
+
+- name: Reload sysctl config
+  become: yes
+  ansible.builtin.shell: sysctl -p /etc/sysctl.d/wireguard.conf
+
+- name: Move Keys to wireguard homedir
+  become: yes
+  ansible.builtin.shell: |
+    mv /home/ansible/wgserver.key /etc/wireguard/
+    mv /home/ansible/wgserver.pub /etc/wireguard/
+
+- name: Get WireGuard private key
+  become: yes
+  ansible.builtin.shell: cat /etc/wireguard/wgserver.key
+  register: wg_privatekey
+
+- name: Create wgs0.conf file
+  become: yes
+  ansible.builtin.template:
+    src: templates/wgs0.j2
+    dest: /etc/wireguard/wgs0.conf
+
+- name: Read file contents
+  become: yes
+  ansible.builtin.shell: cat /etc/wireguard/wgs0.conf
+  register: wgs0_content
+
+- name: Print wgs0.conf
+  ansible.builtin.debug:
+    var: wgs0_content
+
+- name: Start wireguard interface
+  become: yes
+  ansible.builtin.command: wg-quick up wgs0

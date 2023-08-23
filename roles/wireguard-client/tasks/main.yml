@@ -1,0 +1,73 @@
+---
+# tasks file for wireguard-client
+
+#<------- Upate apt packages --->
+- name: Update Server
+  become: yes
+  ansible.builtin.apt:
+    update_cache: yes
+#<------- END Upate apt packages --->
+
+#<------- INSTALL iptables, net-tools & Wireguard --->
+- name: Install iptables, net-tools and Wireguard
+  become: yes
+  ansible.builtin.apt:
+    name:
+      - iptables
+      - net-tools
+      - wireguard
+      - resolvconf
+    state: present
+#<------- END INSTALL --->
+
+#<------- IP Forwarding --->
+- name: Configure IP forwarding
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.d/wireguard.conf
+    line: net.ipv4.ip_forward=1
+    create: yes
+  notify:
+    - Reload sysctl config
+#<------- END IP Forwarding --->
+
+#<------- Olny add new WG clients if not reset --->
+- name: Get wireguard host address
+  set_fact:
+    host_ip: "{{ ansible_default_ipv4.address }}"
+    host_index: "{{ groups['wg-client'].index(inventory_hostname) + 1 }}"
+
+- name: Show host_index
+  ansible.builtin.debug:
+    msg: "{{ host_index }}"
+
+- name: Does wg client exist already
+  ansible.builtin.shell: grep -q "10.7.0.{{ host_index }}" /etc/wireguard/wgs0.conf || true
+  delegate_to: "{{ wg_server_ip }}"
+  register: client_exists
+
+- name: Show host_index
+  ansible.builtin.debug:
+    msg: "{{ client_exists }}"
+  
+#<------- Generate WG keys --->
+- name: Generate WG private & publick keys
+  ansible.builtin.shell: >
+    wg genkey | 
+    tee wgclient.key | 
+    wg pubkey > wgclient.pub
+  notify: 
+    - Move Keys to wireguard homedir
+    - Get WireGuard client Public key
+    - Get WireGuard client private key
+    - Get WireGuard server Public key
+    - Create wgs0.conf file
+    - Read file contents
+    - Print wgc0.conf
+    - Create peer for wg server
+    - Concatenate peer to wgs0
+  when: reset_vpn | default(false)
+
+
+
+

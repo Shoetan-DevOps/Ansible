@@ -1,0 +1,12 @@
+# wireguard client config
+[Interface]
+PrivateKey = {{ wg_privatekey.stdout }} #PrivateKey
+Address = {{ wgc_cidr }} # Server Private IP  #10.1.1.1/24
+DNS = 1.1.1.1
+
+## Peers ##
+[Peer]
+PublicKey = {{ wgserver_pubkey.stdout }} # Server Public Key
+AllowedIPs = 0.0.0.0/0 
+Endpoint = {{ wg_server_ip }}:{{ wg_port }}
+PersistentKeepalive = 15

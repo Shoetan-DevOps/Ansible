@@ -1,0 +1,63 @@
+---
+# handlers file for wireguard-client
+
+- name: Reload sysctl config
+  become: yes
+  ansible.builtin.shell: sysctl -p /etc/sysctl.d/wireguard.conf
+
+# - name: Find Line Number of Peer List 
+#   ansible.builin.shell: grep -n # Peer List /etc/wireguard/wgs0.conf | head -1 | cut -d: -f1
+#   register: target_line_number
+
+- name: Move Keys to wireguard homedir
+  become: yes
+  ansible.builtin.shell: |
+    mv /home/ansible/wgclient.key /etc/wireguard/
+    mv /home/ansible/wgclient.pub /etc/wireguard/
+
+- name: Get WireGuard client Public key
+  become: yes
+  ansible.builtin.shell: cat /etc/wireguard/wgclient.pub
+  register: wg_publickey
+
+- name: Get WireGuard client private key
+  become: yes
+  ansible.builtin.shell: cat /etc/wireguard/wgclient.key
+  register: wg_privatekey
+
+- name: Get WireGuard server Public key
+  become: yes
+  ansible.builtin.shell: cat /etc/wireguard/wgserver.pub
+  register: wgserver_pubkey
+  delegate_to: "{{ wg_server_ip }}"
+
+- name: Create wgs0.conf file
+  become: yes
+  ansible.builtin.template:
+    src: templates/wgc0.j2
+    dest: /etc/wireguard/wgc0.conf
+
+- name: Read file contents
+  become: yes
+  ansible.builtin.shell: cat /etc/wireguard/wgc0.conf
+  register: wgc0_content
+
+- name: Print wgc0.conf
+  ansible.builtin.debug:
+    var: wgc0_content
+
+- name: Create peer for wg server
+  set_fact:
+    multiline_text: |
+      # ------------------
+      [Peer]
+      PublicKey = {{ wg_publickey.stdout }} # Client Public Key
+      AllowedIPs = {{ wgc_cidr }}
+
+- name: Concatenate peer to wgs0
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/wireguard/wgs0.conf
+    line: "{{ multiline_text }}"
+    create: yes
+  delegate_to: "{{ wg_server_ip }}"

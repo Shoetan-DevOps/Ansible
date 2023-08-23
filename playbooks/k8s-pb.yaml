@@ -1,0 +1,17 @@
+
+#<-- Sandbox Cluster Master Nodes -->#
+- hosts: sandbox-k8smaster
+  vars:
+    - reset_cluster: false
+  roles:
+    - kube-common
+    - kube-master
+
+- hosts: sandbox-k8sworker
+  vars:
+    - master_ip: 10.0.0.130
+    - reset_workers: false
+  roles:
+    - kube-common
+    - kube-worker
+#<-- END Sandbox Cluster -->#

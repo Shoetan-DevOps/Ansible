@@ -9,21 +9,9 @@
 # - name: Open k8s ports for Master Node (2378-2380 etcd)
 #   ansible.builtin.command: firewall-cmd --permanent --add-port=2379-2380/tcp
 
-# #<------- Pull k8s masternode images --------->
-# - name: check if images pulled
-#   become: yes
-#   ansible.builtin.stat:
-#     path: /etc/kubernetes/images_pulled
-#   register: images_pulled
-
 # cluster_name
 # master_number
 
-# #<------- SET hostname --------->
-# - name: Set Hostname
-#   become: yes
-#   ansible.builtin.shell: hostnamectl set-hostname {{ cluster_name }}-m0{{ master_number }}
-# #<------- END SET hostname --------->
 
 # #<------- Pull k8s masternode images --------->  
 - name: Pull k8smaster images
@@ -46,7 +34,8 @@
     rm -rf ~/.kube
     rm -rf /etc/kubernetes/pki
     rm -rf /etc/kubernetes/ssl
-  when: cluster_exists.stat.exists == true
+    rm /home/ansible/join*
+  when: reset_cluster
   #    rm -rf /etc/cni /opt/cni /var/lib/cni /var/run/cni
 
 - name: Iniialize cluster
@@ -64,6 +53,7 @@
   - Copy kube config for ansible
   - Download Calico pod network
   - Apply Calico pod network
+  when: reset_cluster
 
 - name: kube config & pod network
   meta: flush_handlers

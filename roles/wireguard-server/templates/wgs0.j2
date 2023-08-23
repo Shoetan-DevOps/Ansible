@@ -1,0 +1,9 @@
+# wireguard server config
+[Interface]
+PrivateKey = {{ wg_privatekey.stdout }} #PrivateKey
+Address = {{ vpn_cidr }} # Server Private IP  #10.1.1.1/24
+PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+ListenPort = {{ wg_port }}  # default is 51820
+
+# Peer List 

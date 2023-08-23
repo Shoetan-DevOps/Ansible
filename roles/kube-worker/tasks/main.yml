@@ -5,16 +5,22 @@
 # - name: Open k8s ports for Master Node (3000-32767 NodePort)
 #   ansible.builtin.command: firewall-cmd --permanent --add-port=30000-32767/tcp
 
-# - name: Get current Master cluster hash
-#   become: yes
-#   ansible.builtin.command: grep -o 'sha256:[a-f0-9]\{64\}' /home/ansible/join_{{ ansible_hostname }}.sh
-#   delegate_to: "{{ master_ip }}"
-#   register: master_hash
 
 # - name: Get current Worker cluster hash
 #   become: yes
 #   ansible.builtin.command: grep -o 'sha256:[a-f0-9]\{64\}' /home/ansible/join_{{ ansible_hostname }}.sh
 #   register: worker_hash
+
+- name: Get existing Cluster join for node
+  become: yes
+  ansible.builtin.stat:
+    path: /home/ansible/join_{{ ansible_hostname }}.sh
+  delegate_to: "{{ master_ip }}"
+  register: master_join_exists
+
+- name: print master join flag
+  ansible.builtin.debug:
+    var: master_join_exists.stat.exists
 
 - name: Drain Node & Reset worker
   become: yes
@@ -22,6 +28,7 @@
       yes | kubeadm reset
       rm -rf /etc/kubernetes/pki
       rm -rf /etc/kubernetes/ssl
+  when: reset_workers or not master_join_exists.stat.exists
 
 - name: Generate Join Script
   ansible.builtin.shell: kubeadm token create --print-join-command > /home/ansible/join_{{ ansible_hostname }}.sh
@@ -30,10 +37,15 @@
     - Transfer join token to ansible
     - Copy join token to worker
     - Join worker to cluster
+  when: reset_workers or not master_join_exists.stat.exists
 
-- name: Pause for 25 seconds
+- name: Join Cluster
+  meta: flush_handlers
+
+- name: Pause for 15 seconds
   ansible.builtin.pause:
-      seconds: 25
+      seconds: 15
+  when: reset_workers or not master_join_exists.stat.exists 
 
 - name: View nodes in cluster
   ansible.builtin.command: kubectl get no
