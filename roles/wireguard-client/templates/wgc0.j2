@@ -1,7 +1,7 @@
 # wireguard client config
 [Interface]
 PrivateKey = {{ wg_privatekey.stdout }} #PrivateKey
-Address = {{ wgc_cidr }} # Server Private IP  #10.1.1.1/24
+Address = {{ wgc_cidr }}.{{ host_index }} # Server Private IP  #10.1.1.1/24
 DNS = 1.1.1.1
 
 ## Peers ##

@@ -44,7 +44,7 @@
 
 - name: Print wgc0.conf
   ansible.builtin.debug:
-    var: wgc0_content
+    var: wgc0_content.stdout
 
 - name: Create peer for wg server
   set_fact:
@@ -52,7 +52,7 @@
       # ------------------
       [Peer]
       PublicKey = {{ wg_publickey.stdout }} # Client Public Key
-      AllowedIPs = {{ wgc_cidr }}
+      AllowedIPs = {{ wgc_cidr }}.{{ host_index }}
 
 - name: Concatenate peer to wgs0
   become: yes
@@ -61,3 +61,15 @@
     line: "{{ multiline_text }}"
     create: yes
   delegate_to: "{{ wg_server_ip }}"
+
+- name: Start wireguard client interface
+  become: yes
+  ansible.builtin.command: wg-quick up wgc0
+
+- name: Restart wireguard server interface
+  become: yes
+  ansible.builtin.shell: |
+    wg-quick down wgs0
+    wg-quick up wgs0
+  delegate_to: "{{ wg_server_ip }}"
+  ignore_errors: yes

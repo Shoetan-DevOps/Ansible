@@ -42,9 +42,9 @@
 - name: Join Cluster
   meta: flush_handlers
 
-- name: Pause for 15 seconds
+- name: Pause for 10 seconds
   ansible.builtin.pause:
-      seconds: 15
+      seconds: 10
   when: reset_workers or not master_join_exists.stat.exists 
 
 - name: View nodes in cluster

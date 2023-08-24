@@ -31,25 +31,42 @@
     - Reload sysctl config
 #<------- END IP Forwarding --->
 
-#<------- Olny add new WG clients if not reset --->
-- name: Get wireguard host address
+#<-------  unique index WG clients & check if already part of network --->
+- name: Get wireguard unique host address
   set_fact:
     host_ip: "{{ ansible_default_ipv4.address }}"
-    host_index: "{{ groups['wg-client'].index(inventory_hostname) + 1 }}"
+    host_index: "{{ groups['wg-client'].index(inventory_hostname) + 2 }}"
 
 - name: Show host_index
   ansible.builtin.debug:
-    msg: "{{ host_index }}"
+    msg: "{{ wgc_cidr }}.{{ host_index }}"
 
-- name: Does wg client exist already
-  ansible.builtin.shell: grep -q "10.7.0.{{ host_index }}" /etc/wireguard/wgs0.conf || true
+- name: Does wg client exist already in server conf - index check
+  become: yes
+  ansible.builtin.shell: grep -q "10.7.0.{{ host_index }}" /etc/wireguard/wgs0.conf
   delegate_to: "{{ wg_server_ip }}"
   register: client_exists
+  ignore_errors: yes  # Ignore the error if file doesn't exist
+  failed_when: client_exists.rc == 3  # Treat non-existent file as success (0 = found, 1 = not foun, 2 = file not exists)
 
-- name: Show host_index
+- name: Print Client exist
   ansible.builtin.debug:
-    msg: "{{ client_exists }}"
-  
+    var: client_exists.rc
+
+#<------- WG reset actions --->
+- name: Stop wgc0 if reset vpn and vpn exist
+  become: yes
+  ansible.builtin.shell: wg-quick down wgc0
+  ignore_errors: true
+  when: reset_vpn | default(false)
+  # when: (reset_vpn | default(false)) and client_exists.rc==0
+
+- name: Remove all old clients if reset clients
+  become: yes
+  ansible.builtin.shell: cp /etc/wireguard/wgs0-template /etc/wireguard/wgs0.conf
+  delegate_to: "{{ wg_server_ip }}"
+  when: reset_vpn | default(false)
+
 #<------- Generate WG keys --->
 - name: Generate WG private & publick keys
   ansible.builtin.shell: >
@@ -66,7 +83,9 @@
     - Print wgc0.conf
     - Create peer for wg server
     - Concatenate peer to wgs0
-  when: reset_vpn | default(false)
+    - Start wireguard client interface
+    - Restart wireguard server interface
+  when: (reset_vpn | default(false)) or (client_exists.rc != 0)
 
 
 
