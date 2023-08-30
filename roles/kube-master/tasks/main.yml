@@ -36,14 +36,19 @@
     rm -rf /etc/kubernetes/ssl
     rm /home/ansible/join*
   when: reset_cluster
+  ignore_errors: true
   #    rm -rf /etc/cni /opt/cni /var/lib/cni /var/run/cni
+
+- name: Get wg ip addr for k8s
+  ansible.builtin.shell: ip -4 addr show wg0 | awk '/inet / {split($2, a, "/"); print a[1]}'
+  register: kubelet_interface_ip
 
 - name: Iniialize cluster
   become: yes
   ansible.builtin.command: |
     kubeadm init 
-    --apiserver-advertise-address={{ ansible_default_ipv4.address }} 
-    --apiserver-cert-extra-sans={{ ansible_default_ipv4.address }} 
+    --apiserver-advertise-address={{ kubelet_interface_ip.stdout }} 
+    --apiserver-cert-extra-sans={{ kubelet_interface_ip.stdout }} 
     --pod-network-cidr={{ pod_cidr }} 
     --service-cidr={{ service_cidr }} 
     --node-name {{ ansible_hostname }} 

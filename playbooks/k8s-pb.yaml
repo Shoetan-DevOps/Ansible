@@ -1,16 +1,16 @@
 
 #<-- Sandbox Cluster Master Nodes -->#
-- hosts: sandbox-k8smaster
+- hosts: wg-server
   vars:
-    - reset_cluster: false
+    - reset_cluster: false   #TRUE FOR 1ST USE ALSO
   roles:
     - kube-common
     - kube-master
 
-- hosts: sandbox-k8sworker
+- hosts: wg-client
   vars:
-    - master_ip: 10.0.0.130
-    - reset_workers: false
+    - master_ip: 10.0.0.115
+    - reset_workers: true
   roles:
     - kube-common
     - kube-worker

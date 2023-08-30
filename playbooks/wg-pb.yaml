@@ -2,7 +2,7 @@
 #<-- Configure VPN for onprem & VPS & Cloud (wirguard) -->#
 - hosts: wg-server
   vars:
-    - reset_vpn: false  #flag to reset vpn - else keeps server settings
+    - reset_vpn: false     # True = 1st time & resets
     - vpn_cidr: 10.7.7.1/24
     - wg_port: 5755 # default is 51820
   roles:
@@ -11,7 +11,7 @@
 #<-- Add VPN clients (wirguard) -->#
 - hosts: wg-client
   vars:
-    - reset_vpn: false  #flag to reset vpn - else keeps server settings
+    - reset_vpn: false     #True not required for 1st time
     - wg_server_ip: 10.0.0.115
     - vpn_cidr: 10.7.7.1/24
     - wgc_cidr: 10.7.7

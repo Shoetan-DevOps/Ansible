@@ -43,27 +43,27 @@
 
 - name: Does wg client exist already in server conf - index check
   become: yes
-  ansible.builtin.shell: grep -q "10.7.0.{{ host_index }}" /etc/wireguard/wgs0.conf
+  ansible.builtin.shell: grep -q "10.7.7.{{ host_index }}" /etc/wireguard/wg0.conf
   delegate_to: "{{ wg_server_ip }}"
   register: client_exists
   ignore_errors: yes  # Ignore the error if file doesn't exist
-  failed_when: client_exists.rc == 3  # Treat non-existent file as success (0 = found, 1 = not foun, 2 = file not exists)
+  failed_when: client_exists.rc == 3  # Treat non-existent file as success (0 = found, 1 = not found, 2 = file not exists)
 
 - name: Print Client exist
   ansible.builtin.debug:
     var: client_exists.rc
 
 #<------- WG reset actions --->
-- name: Stop wgc0 if reset vpn and vpn exist
+- name: Stop wg0 if reset vpn and vpn exist
   become: yes
-  ansible.builtin.shell: wg-quick down wgc0
+  ansible.builtin.shell: wg-quick down wg0
   ignore_errors: true
   when: reset_vpn | default(false)
   # when: (reset_vpn | default(false)) and client_exists.rc==0
 
 - name: Remove all old clients if reset clients
   become: yes
-  ansible.builtin.shell: cp /etc/wireguard/wgs0-template /etc/wireguard/wgs0.conf
+  ansible.builtin.shell: cp /etc/wireguard/wg0-template /etc/wireguard/wg0.conf
   delegate_to: "{{ wg_server_ip }}"
   when: reset_vpn | default(false)
 
@@ -80,7 +80,7 @@
     - Get WireGuard server Public key
     - Create wgs0.conf file
     - Read file contents
-    - Print wgc0.conf
+    - Print wg0.conf
     - Create peer for wg server
     - Concatenate peer to wgs0
     - Start wireguard client interface

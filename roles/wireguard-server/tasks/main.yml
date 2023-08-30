@@ -40,8 +40,9 @@
 #<------- Bring wg down if reset --->
 - name: Bring wg down if reset
   become: yes
-  ansible.builtin.shell: wg-quick down wgs0
+  ansible.builtin.shell: wg-quick down wg0
   when: reset_vpn | default(false)
+  ignore_errors: yes
 
 #<------- Generate WG keys --->
 - name: Generate WG private & publick keys
@@ -52,10 +53,10 @@
   notify: 
     - Move Keys to wireguard homedir
     - Get WireGuard private key
-    - Create wgs0 template file
-    - Create wgs0.conf file
+    - Create wg0 template file
+    - Create wg0.conf file
     - Read file contents
-    - Print wgs0.conf
+    - Print wg0.conf
     - Start wireguard interface
   when: reset_vpn | default(false)
 

@@ -16,27 +16,27 @@
   ansible.builtin.shell: cat /etc/wireguard/wgserver.key
   register: wg_privatekey
 
-- name: Create wgs0 template file
+- name: Create wg0 template file
   become: yes
   ansible.builtin.template:
     src: templates/wgs0.j2
-    dest: /etc/wireguard/wgs0-template
+    dest: /etc/wireguard/wg0-template
 
-- name: Create wgs0.conf file
+- name: Create wg0.conf file
   become: yes
   ansible.builtin.template:
     src: templates/wgs0.j2
-    dest: /etc/wireguard/wgs0.conf
+    dest: /etc/wireguard/wg0.conf
     
 - name: Read file contents
   become: yes
-  ansible.builtin.shell: cat /etc/wireguard/wgs0.conf
-  register: wgs0_content
+  ansible.builtin.shell: cat /etc/wireguard/wg0.conf
+  register: wg0_content
 
-- name: Print wgs0.conf
+- name: Print wg0.conf
   ansible.builtin.debug:
-    var: wgs0_content
+    var: wg0_content
 
 - name: Start wireguard interface
   become: yes
-  ansible.builtin.command: wg-quick up wgs0
+  ansible.builtin.command: wg-quick up wg0

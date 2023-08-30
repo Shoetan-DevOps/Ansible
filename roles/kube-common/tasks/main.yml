@@ -164,6 +164,19 @@
   meta: flush_handlers
 #<------  END K8s COMPONENT INSTALLATION ------->
 
+# - name: Set kubelet args with specific interface IP
+#   become: yes
+#   ansible.builtin.lineinfile:
+#     path: /etc/default/kubelet
+#     line: "KUBELET_EXTRA_ARGS=--node-ip={{ kubelet_interface_ip }}"
+#     create: yes
+#   vars:
+#     specific_interface_prefix: "wg0"
+#     kubelet_interface_ip: "{{ hostvars[inventory_hostname]['ansible_ipv4addresses'] | select('match', specific_interface_prefix ~ '.*') | list | first }}"
+
+- name: Get wg ip addr for k8s
+  ansible.builtin.shell: ip -4 addr show wg0 | awk '/inet / {split($2, a, "/"); print a[1]}'
+  register: kubelet_interface_ip
 
 #<------  Kubelet Settings ------->
 - name: Get Local IP Address
@@ -180,7 +193,8 @@
   become: yes
   ansible.builtin.lineinfile:
     path: /etc/default/kubelet
-    line: "KUBELET_EXTRA_ARGS=--node-ip={{ ansible_default_ipv4.address }}"
+    # line: "KUBELET_EXTRA_ARGS=--node-ip={{ ansible_default_ipv4.address }}"
+    line: "KUBELET_EXTRA_ARGS=--node-ip={{ kubelet_interface_ip.stdout }}"
     create: yes    
 
 #<------  End Kubelet Settings ------->

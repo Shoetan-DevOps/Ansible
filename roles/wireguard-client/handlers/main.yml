@@ -5,10 +5,6 @@
   become: yes
   ansible.builtin.shell: sysctl -p /etc/sysctl.d/wireguard.conf
 
-# - name: Find Line Number of Peer List 
-#   ansible.builin.shell: grep -n # Peer List /etc/wireguard/wgs0.conf | head -1 | cut -d: -f1
-#   register: target_line_number
-
 - name: Move Keys to wireguard homedir
   become: yes
   ansible.builtin.shell: |
@@ -35,20 +31,20 @@
   become: yes
   ansible.builtin.template:
     src: templates/wgc0.j2
-    dest: /etc/wireguard/wgc0.conf
+    dest: /etc/wireguard/wg0.conf
 
 - name: Read file contents
   become: yes
-  ansible.builtin.shell: cat /etc/wireguard/wgc0.conf
-  register: wgc0_content
+  ansible.builtin.shell: cat /etc/wireguard/wg0.conf
+  register: wg0_content
 
-- name: Print wgc0.conf
+- name: Print wg0.conf
   ansible.builtin.debug:
-    var: wgc0_content.stdout
+    var: wg0_content.stdout
 
 - name: Create peer for wg server
   set_fact:
-    multiline_text: |
+    wg_peer: |
       # ------------------
       [Peer]
       PublicKey = {{ wg_publickey.stdout }} # Client Public Key
@@ -57,19 +53,19 @@
 - name: Concatenate peer to wgs0
   become: yes
   ansible.builtin.lineinfile:
-    path: /etc/wireguard/wgs0.conf
-    line: "{{ multiline_text }}"
+    path: /etc/wireguard/wg0.conf
+    line: "{{ wg_peer }}"
     create: yes
   delegate_to: "{{ wg_server_ip }}"
 
 - name: Start wireguard client interface
   become: yes
-  ansible.builtin.command: wg-quick up wgc0
+  ansible.builtin.command: wg-quick up wg0
 
 - name: Restart wireguard server interface
   become: yes
   ansible.builtin.shell: |
-    wg-quick down wgs0
-    wg-quick up wgs0
+    wg-quick down wg0
+    wg-quick up wg0
   delegate_to: "{{ wg_server_ip }}"
   ignore_errors: yes
