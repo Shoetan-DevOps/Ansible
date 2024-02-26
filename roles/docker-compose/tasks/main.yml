@@ -1,0 +1,21 @@
+---
+# tasks file for core-networking
+#
+# <--- Install Docker & Docker compose
+- name: Install docker 
+  ansible.builtin.apt:
+    name: docker.io
+    state: latest
+  notify: completed_install
+
+- name: run handler
+  meta: flush_handlers
+
+- name: Install docker compose
+  ansible.builtin.apt:
+    name: docker-compose
+    state: latest
+  notify: completed_install 
+
+
+
