@@ -1,7 +1,2 @@
 ---
-# handlers file for core-networking
-
-# <----  verfiy installation of docker -->
-- name: completed_install
-  ansible.builtin.debug:
-    msg: "COMPLETE!!!"
+# handlers file for podman-compose

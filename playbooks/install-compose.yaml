@@ -1,12 +1,6 @@
 # --- Master Node ---
 - hosts: podman
   become: true
+  gather_facts: false
   roles:
     - podman-compose
-
-
-# --- Master Node ---
-- hosts: docker
-  become: true
-  roles:
-    - docker-compose
