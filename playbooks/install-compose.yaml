@@ -1,0 +1,12 @@
+# --- Master Node ---
+- hosts: podman
+  become: true
+  roles:
+    - podman-compose
+
+
+# --- Master Node ---
+- hosts: docker
+  become: true
+  roles:
+    - docker-compose
