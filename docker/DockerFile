@@ -1,0 +1,1 @@
+FROM faucet/python3:10.0.0

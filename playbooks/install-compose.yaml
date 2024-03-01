@@ -1,6 +1,16 @@
-# --- Master Node ---
-- hosts: podman
+# --- Install Compose ---
+
+- hosts: docker
   become: true
   gather_facts: false
   roles:
-    - podman-compose
+    - install-compose
+
+- hosts: adm-monit01
+  become: true
+  gather_facts: false
+  vars:
+    git_repo_url: "https://github.com/Shoetan-DevOps/adm-performance-compose.git"
+  roles:
+    - deploy-compose-app
+

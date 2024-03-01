@@ -1,0 +1,28 @@
+# echo "upgrade ansible"
+# pip install --upgrade ansible
+
+# echo "upgrade pip"
+# /bin/python3 -m pip install --upgrade pip
+
+echo "Create ansible project folder"
+mkdir /home/ansible/Projects && cd /home/ansible/Projects
+git clone https://github.com/Shoetan-DevOps/Ansible.git
+
+echo "\n\nEdit ansible host file"
+sed -i "s/remote_user = root/remote_user = ansible/" /etc/ansible/ansible.cfg
+
+echo "change perms"
+sudo chown -R ansible:ansible /home/ansible/Projects
+
+echo "\n\nTransfer playbook & roles"
+cp -R /home/ansible/Projects/Ansible/playbooks /etc/ansible/
+cp -R /home/ansible/Projects/Ansible/roles /etc/ansible/
+
+echo "\nChange ownership onf /etc/ansible"
+sudo chown -R ansible:ansible /etc/ansible/
+
+# echo "upgrade ansible"
+# sudo apt install ansible --upgrade
+
+# echo "upgrade pip"
+# /bin/python3 -m pip install --upgrade pip

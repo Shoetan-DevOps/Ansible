@@ -1,0 +1,24 @@
+---
+# tasks file for core-networking
+#
+
+- name: Create apps directory if not present
+  ansible.builtin.file:
+    path: /home/ansible/apps
+    state: directory
+    mode: '0755'
+
+- name: Clone docker compose app repo
+  ansible.builtin.git:
+    repo: "{{ git_repo_url }}"
+    dest: /home/ansible/apps
+  notify:
+    - Recursively change ownership of a directory
+    - Extract folder name from the URL
+
+- name: Deploy docker compose
+  ansible.builtin.debug:
+    var: app_folder
+
+
+
