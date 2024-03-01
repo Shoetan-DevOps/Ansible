@@ -13,7 +13,7 @@
     state: present
 
 - name: Enable docker svc 
-  ansible.builtin.systemd:
+  ansible.builtin.service:
     name: docker
     enabled: yes
     state: started
