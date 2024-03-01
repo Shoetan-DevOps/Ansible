@@ -6,13 +6,11 @@
   ansible.builtin.apt:
     name: docker.io
     state: present
-  notify: completed_install
 
 - name: Install docker compose
   ansible.builtin.apt:
     name: docker-compose
     state: present
-  notify: completed_install 
 
 - name: Enable docker svc 
   ansible.builtin.systemd:
