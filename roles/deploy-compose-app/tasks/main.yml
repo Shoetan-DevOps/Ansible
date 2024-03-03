@@ -29,8 +29,12 @@
     file_type: directory
   register: apps_to_deploy
 
-- name: Deploy each App in their subdirectory
-  ansible.builtin.command: 
-  args:
-    chdir: "{{ item.path }}"
-  loop: "{{ subdirectories.files }}"
+- name: Apps path print
+  ansible.builtin.debug:
+    msg: "{{ apps_to_deploy.stdout }}"
+
+# - name: Deploy each App in their subdirectory
+#   ansible.builtin.command: 
+#   args:
+#     chdir: "{{ item.path }}"
+#   loop: "{{ apps_to_deploy.files }}"
