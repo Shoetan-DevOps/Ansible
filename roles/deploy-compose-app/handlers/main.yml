@@ -11,4 +11,4 @@
 
 - name: Extract folder name from the URL
   set_fact:
-    app_folder: "{{ git_repo_url | regex_search('([^/]+)\\.git$', '\\1') }}"
+    app_folder: "{{ git_repo_url | regex_search('([^/]+)\\.git$', '\\1') | first }}"
