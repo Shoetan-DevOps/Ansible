@@ -16,6 +16,9 @@
     - Recursively change ownership of a directory
     - Extract folder name from the URL
 
+- name: Post download Steps
+  meta: flush_handlers
+
 - name: Deploy docker compose
   ansible.builtin.debug:
     var: app_folder
