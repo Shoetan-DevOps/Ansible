@@ -12,6 +12,7 @@
   ansible.builtin.git:
     repo: "{{ git_repo_url }}"
     dest: /home/ansible/apps
+    force: yes
   notify:
     - Recursively change ownership of a directory
     - Extract folder name from the URL
