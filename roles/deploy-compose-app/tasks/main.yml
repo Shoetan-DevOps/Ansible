@@ -21,7 +21,16 @@
 
 - name: Deploy docker compose
   ansible.builtin.debug:
-    var: app_folder
+    msg: "{{ app_folder.stdout }}"
 
+- name: Find all subdirectories in the target directory
+  ansible.builtin.find:
+    paths: /home/ansible/apps/{{ app_folder.stdout }}
+    file_type: directory
+  register: apps_to_deploy
 
-
+- name: Deploy each App in their subdirectory
+  ansible.builtin.command: 
+  args:
+    chdir: "{{ item.path }}"
+  loop: "{{ subdirectories.files }}"

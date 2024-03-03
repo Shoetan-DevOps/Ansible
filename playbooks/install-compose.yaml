@@ -1,10 +1,10 @@
 # --- Install Compose ---
 
-- hosts: docker
-  become: true
-  gather_facts: false
-  roles:
-    - install-compose
+# - hosts: docker
+#   become: true
+#   gather_facts: false
+#   roles:
+#     - install-compose
 
 - hosts: adm-monit01
   become: true
