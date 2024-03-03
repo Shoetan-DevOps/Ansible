@@ -6,11 +6,18 @@
 #   roles:
 #     - install-compose
 
-- hosts: adm-monit01
+# - hosts: adm-monit01
+#   become: true
+#   gather_facts: false
+#   vars:
+#     git_repo_url: "https://github.com/Shoetan-DevOps/adm-performance-compose.git"
+#   roles:
+#     - deploy-compose-app
+
+- hosts: devops01
   become: true
   gather_facts: false
   vars:
-    git_repo_url: "https://github.com/Shoetan-DevOps/adm-performance-compose.git"
+    git_repo_url: "https://github.com/Shoetan-DevOps/devops-tools-compose.git"
   roles:
     - deploy-compose-app
-
