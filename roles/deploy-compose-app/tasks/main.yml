@@ -38,7 +38,7 @@
     msg: "{{ apps_to_deploy }}"
 
 - name: Deploy each App in their subdirectory
-  ansible.builtin.command: ls
+  ansible.builtin.command: "ls -l"
   args:
     chdir: "{{ item.path }}"
   loop: "{{ apps_to_deploy.files }}"
