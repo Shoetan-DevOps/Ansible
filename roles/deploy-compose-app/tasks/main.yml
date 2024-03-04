@@ -8,14 +8,17 @@
     state: directory
     mode: '0755'
 
+- name: Extract folder name from the URL
+  set_fact:
+    app_folder: "{{ git_repo_url | regex_search('([^/]+)\\.git$', '\\1') | first }}"
+
 - name: Clone docker compose app repo
   ansible.builtin.git:
     repo: "{{ git_repo_url }}"
-    dest: /home/ansible/apps/
+    dest: /home/ansible/apps/{{ app_folder }}
     force: yes
   notify:
     - Recursively change ownership of a directory
-    - Extract folder name from the URL
 
 - name: Post download Steps
   meta: flush_handlers
