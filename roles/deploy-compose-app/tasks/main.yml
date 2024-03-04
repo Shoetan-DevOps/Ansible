@@ -2,6 +2,9 @@
 # tasks file for core-networking
 #
 
+- name: Remove all running containers
+  ansible.builtin.command: docker rm -f $(docker ps -aq) || true
+
 - name: Create apps directory if not present
   ansible.builtin.file:
     path: /home/ansible/apps
