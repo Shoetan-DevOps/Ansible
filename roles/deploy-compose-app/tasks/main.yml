@@ -42,3 +42,6 @@
   args:
     chdir: "{{ item.path }}"
   loop: "{{ apps_to_deploy.files }}"
+
+- name: List all running apps
+  ansible.builtin.command: docker ps
