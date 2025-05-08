@@ -1,0 +1,5 @@
+# --- Master Node ---      - kube-master
+- hosts: k8smaster
+  become: true
+  roles:
+    - kubeadm
