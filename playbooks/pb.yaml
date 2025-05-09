@@ -3,6 +3,11 @@
   hosts: kube
   become: false
   tasks:
+    - name: Ensure util-linus
+      apt:
+        name: util-linux
+        state: present
+    
     - name: Disable swap temporarily
       shell: swappoff -a
       
