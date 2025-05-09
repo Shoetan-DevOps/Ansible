@@ -1,7 +1,7 @@
 # --- Master Node ---
 - name: Configure k8s
   hosts: kube
-  become: true
+  become: false
   tasks:
     - name: Disable swap temporarily
       shell: swappoff -a
