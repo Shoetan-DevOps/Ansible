@@ -1,9 +1,9 @@
 # --- Master Node ---
 - name: Configure k8s
   hosts: kube
-  become: false
+  become: true
   tasks:
-    - name: Ensure util-linus
+    - name: Ensure util-linux (for swapoff)
       apt:
         name: util-linux
         state: present
