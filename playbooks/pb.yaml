@@ -1,6 +1,6 @@
 # --- Master Node ---
 - name: Configure k8s
-  hosts: 10.10.10.244
+  hosts: kube
   become: true
   tasks:
     - name: Disable swap temporarily
